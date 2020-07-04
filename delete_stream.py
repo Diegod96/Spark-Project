@@ -1,8 +1,7 @@
 import boto3
-from moto import mock_kinesis
 from config import *
 import sys
-from botocore.exceptions import ClientError
+
 
 aws_key_id = accesskeyid
 aws_key = secretaccesskey
