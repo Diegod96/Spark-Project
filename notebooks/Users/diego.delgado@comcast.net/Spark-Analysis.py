@@ -1,6 +1,7 @@
 # Databricks notebook source
 from __future__ import print_function
 import sys
+import pymysql
 import os
 import re
 from operator import add
@@ -20,22 +21,24 @@ from pyspark.ml.feature import MinMaxScaler
 from pyspark.ml.linalg import Vectors, VectorUDT
 from pyspark.sql.functions import *
 
-
+# Get AWS credentials
 aws_key_id = os.environ.get("accesskeyid")
 aws_key = os.environ.get("secretaccesskey")
 
+# Start spark instance
 conf = SparkConf().setAppName("first") 
 sc = SparkContext.getOrCreate(conf=conf)
-    
+
+# Allow spark to access my S3 bucket
 sc._jsc.hadoopConfiguration().set("fs.s3n.awsAccessKeyId",aws_key_id)
 sc._jsc.hadoopConfiguration().set("fs.s3n.awsSecretAccessKey",aws_key)
 config_dict = {"fs.s3n.awsAccessKeyId":aws_key_id,
                "fs.s3n.awsSecretAccessKey":aws_key}
 bucket = "diego-twitter-stream-sink"
-prefix = "/2020/07/*/*/*"
+prefix = "/2020/*/*/*/*"
 filename = "s3n://{}/{}".format(bucket, prefix)
 
-
+# Convert file from S3 bucket to an RDD
 rdd = sc.hadoopFile(filename,
                 'org.apache.hadoop.mapred.TextInputFormat',
                 'org.apache.hadoop.io.Text',
@@ -43,23 +46,30 @@ rdd = sc.hadoopFile(filename,
                 conf=config_dict)
 spark = SparkSession.builder.appName("PythonWordCount").config("spark.files.overwrite","true").getOrCreate()
 
+# Map RDD to specific columns
 df = spark.read.json(rdd.map(lambda x: x[1]))
 features_of_interest = ["ts", "text", "sentiment"]
 df_reduce = df.select(features_of_interest)
-# print(df_reduce.head())
 
-url = "jdbc:mysql://database-1.cakatups2o7c.us-east-1.rds.amazonaws.com:3306/twitter"
-table_name = "tweets"
-mode_ = "overwrite"
-password = os.environ.get("password")
+# Convert RDD to Pandas Dataframe
+tweets_pdf = df_reduce.toPandas()
 
-df_reduce.write.format("jdbc").option("url", url)\
-   .option("dbtable", table_name)\
-   .option("driver", "com.mysql.jdbc.Driver")\
-   .option("user", "admin")\
-   .option("password", password)\
-   .mode(mode_)\
-   .save() 
+# Establish connection to AWS RDS Via MySql Workbench
+connection = pymysql.connect(host=os.environ.get("databasehost"),
+                         user='admin',
+                         password=os.environ.get("databasepassword"),
+                         db='twitter-data')
+
+cursor=connection.cursor()
+
+cols = "`,`".join([str(i) for i in tweets_pdf.columns.tolist()])
+
+# Iterate over dataframe and add values to columns in the "tweets" table
+for i,row in tweets_pdf.iterrows():
+    sql = "INSERT INTO `tweets` (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
+    cursor.execute(sql, tuple(row))
+    connection.commit()
+    
 
 print("Data saved to MySql Databaste")
 
