@@ -2,10 +2,13 @@ from tweepy import Stream, OAuthHandler
 from tweepy.streaming import StreamListener
 import json
 import boto3
+import sqlite3
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from unidecode import unidecode
 from config import *
 
+conn = sqlite3.connect('twitter.db', check_same_thread=False)
+c = conn.cursor()
 
 # Instantiate vaderSentiment analyzer
 analyzer = SentimentIntensityAnalyzer()
@@ -17,6 +20,21 @@ access_token = atoken
 access_token_secret = atokensecret
 aws_key_id = accesskeyid
 aws_key = secretaccesskey
+
+
+def create_table():
+    """
+    Create SQLite Database for the live twitter sentiment line graph
+    :return:
+    """
+    try:
+        c.execute("CREATE TABLE IF NOT EXISTS sentiment(unix REAL, tweet TEXT, sentiment REAL)")
+        c.execute("CREATE INDEX fast_unix ON sentiment(unix)")
+        c.execute("CREATE INDEX fast_tweet ON sentiment(tweet)")
+        c.execute("CREATE INDEX fast_sentiment ON sentiment(sentiment)")
+        conn.commit()
+    except Exception as e:
+        print(str(e))
 
 
 def sentiment_analysis(text):
@@ -44,9 +62,11 @@ class TweetStreamListener(StreamListener):
         try:
             if 'lang' in all_data and (all_data['lang'] == "en"):
                 tweet_data['ts'] = str(all_data["timestamp_ms"])
-                # tweet_data['status_id'] = str(all_data["id"])
                 tweet_data['text'] = unidecode(all_data["text"])
                 tweet_data['sentiment'] = str(sentiment_analysis(all_data["text"]))
+                c.execute("INSERT INTO sentiment (unix, tweet, sentiment) VALUES (?, ?, ?)",
+                          (tweet_data['ts'], tweet_data['text'], tweet_data['sentiment']))
+                conn.commit()
                 kinesis_client.put_record(
                     DeliveryStreamName=stream_name,
                     Record={
@@ -54,7 +74,9 @@ class TweetStreamListener(StreamListener):
                     }
                 )
                 print(tweet_data)
-        except (AttributeError, Exception) as e:
+
+
+        except (AttributeError, KeyError, Exception) as e:
             print(e)
         return True
 
@@ -68,6 +90,7 @@ class TweetStreamListener(StreamListener):
 
 
 if __name__ == '__main__':
+    create_table()
     kinesis_client = boto3.client('firehose',
                                   region_name=region,  # enter the region
                                   aws_access_key_id=accesskeyid,  # fill your AWS access key id
