@@ -53,9 +53,9 @@ app.layout = html.Div(
                                       style={'color': ' #1E1E1E'})
                               ]
                               ),
-                     html.Div(className='eight columns div-for-chars bg-grey',
+                     html.Div(className='eight columns div-for-chars bg-black',
                               children=[
-                                  dcc.Graph(id='live-graph', config={'displayModeBar': False}, animate=False),
+                                  dcc.Graph(id='live-graph', config={'displayModeBar': False}, animate=True),
                                   dcc.Interval(
                                       id='graph-update',
                                       interval=1 * 1000
@@ -106,8 +106,8 @@ def update_graph_scatter(sentiment_term):
 
         return {'data': [data], 'layout': go.Layout(xaxis=dict(range=[min(X), max(X)]),
                                                     yaxis=dict(range=[min(Y), max(Y)]),
-                                                    colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400',
-                                                              '#FF0056'],
+                                                    # colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400',
+                                                    #           '#FF0056'],
                                                     template='plotly_dark',
                                                     paper_bgcolor='rgba(0, 0, 0, 0)',
                                                     plot_bgcolor='rgba(0, 0, 0, 0)',
@@ -146,9 +146,10 @@ def update_pie(sentiment_term, _):
             else:
                 neutral += 1
 
+
         values = [positive, negative, neutral]
         labels = ['Positive', 'Negative', 'Mixed']
-        # print(labels, values)
+        print(labels, values)
 
         trace = go.Pie(labels=labels, values=values, title="Distribution of Twitter Sentiement",
                        hoverinfo='label+percent', textinfo='value',
@@ -157,8 +158,8 @@ def update_pie(sentiment_term, _):
                            line=dict(color=app_colors['background'], width=2)))
 
         return {'data': [trace], 'layout': go.Layout(title="Distribution of Twitter Sentiement",
-                                                     colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400',
-                                                               '#FF0056'],
+                                                     # colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400',
+                                                     #           '#FF0056'],
                                                      template='plotly_dark',
                                                      paper_bgcolor='rgba(0, 0, 0, 0)',
                                                      plot_bgcolor='rgba(0, 0, 0, 0)',
