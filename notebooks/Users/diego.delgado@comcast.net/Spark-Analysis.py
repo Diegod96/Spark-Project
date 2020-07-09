@@ -4,6 +4,8 @@ import sys
 import pymysql
 import os
 import re
+import mysql.connector
+from sqlalchemy import create_engine
 from operator import add
 import pandas as pd
 from pyspark.sql.types import StructField, StructType, StringType
@@ -51,27 +53,36 @@ df = spark.read.json(rdd.map(lambda x: x[1]))
 features_of_interest = ["ts", "text", "sentiment"]
 df_reduce = df.select(features_of_interest)
 
+
+
 # Convert RDD to Pandas Dataframe
 tweets_pdf = df_reduce.toPandas()
 
-# Establish connection to AWS RDS Via MySql Workbench
-connection = pymysql.connect(host=os.environ.get("databasehost"),
-                         user='admin',
-                         password=os.environ.get("databasepassword"),
-                         db='twitter-data')
+engine = create_engine(f'mysql+mysqlconnector://admin:{os.environ.get("databasepassword")}@{os.environ.get("databasehost")}/twitter-data')
+tweets_pdf.to_sql(name='tweets', con=engine, if_exists = 'replace', index=False)
 
-cursor=connection.cursor()
 
-cols = "`,`".join([str(i) for i in tweets_pdf.columns.tolist()])
 
-# Iterate over dataframe and add values to columns in the "tweets" table
-for i,row in tweets_pdf.iterrows():
-    sql = "INSERT INTO `tweets` (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
-    cursor.execute(sql, tuple(row))
-    connection.commit()
+
+# # Establish connection to AWS RDS Via MySql Workbench
+# connection = pymysql.connect(host=os.environ.get("databasehost"),
+#                          user='admin',
+#                          password=os.environ.get("databasepassword"),
+#                          db='twitter-data')
+
+# cursor=connection.cursor()
+
+# cols = "`,`".join([str(i) for i in tweets_pdf.columns.tolist()])
+
+# # Iterate over dataframe and add values to columns in the "tweets" table
+# for i,row in tweets_pdf.iterrows():
+#     sql = "INSERT INTO `tweets` (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
+#     cursor.execute(sql, tuple(row))
+#     connection.commit()
     
 
 print("Data saved to MySql Databaste")
+
 
 # COMMAND ----------
 
