@@ -94,9 +94,9 @@ class TweetStreamListener(StreamListener):
 if __name__ == '__main__':
     create_table()
     kinesis_client = boto3.client('firehose',
-                                  region_name=region,  # enter the region
-                                  aws_access_key_id=accesskeyid,  # fill your AWS access key id
-                                  aws_secret_access_key=secretaccesskey)  # fill you aws secret access key
+                                  region_name=os.environ.get("region"),  # enter the region
+                                  aws_access_key_id=os.environ.get("accesskeyid"),  # fill your AWS access key id
+                                  aws_secret_access_key=os.environ.get("secretaccesskey"))  # fill you aws secret access key
     listener = TweetStreamListener()
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
