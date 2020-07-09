@@ -5,7 +5,7 @@ import boto3
 import sqlite3
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from unidecode import unidecode
-from config import *
+# from config import *
 
 conn = sqlite3.connect('twitter.db', check_same_thread=False)
 c = conn.cursor()
