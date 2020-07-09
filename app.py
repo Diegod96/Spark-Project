@@ -1,5 +1,7 @@
 import mysql.connector as sql
 import dash
+import sys
+import os
 import numpy as np
 from dash.dependencies import Output, Input, Event
 import dash_core_components as dcc
@@ -12,8 +14,8 @@ import pandas as pd
 # from config import database_name, database_password, database_endpoint_url, database_user
 
 conn = sqlite3.connect('twitter.db', check_same_thread=False)
-db_connection = sql.connect(host=database_endpoint_url, database=database_name, user=database_user,
-                            password=database_password)
+db_connection = sql.connect(host=os.environ.get("database_endpoint_url"), database=os.environ.get("database_name"), user=os.environ.get("database_user"),
+                            password=os.environ.get("database_password"))
 
 app_colors = {
     'background': '#0C0F0A',
