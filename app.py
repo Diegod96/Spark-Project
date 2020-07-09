@@ -57,7 +57,7 @@ app.layout = html.Div(
                               ),
                      html.Div(className='eight columns div-for-chars bg-black',
                               children=[
-                                  dcc.Graph(id='live-graph', config={'displayModeBar': False}, animate=True),
+                                  dcc.Graph(id='live-graph', config={'displayModeBar': False}, animate=False),
                                   dcc.Interval(
                                       id='graph-update',
                                       interval=1 * 1000
@@ -128,8 +128,8 @@ def update_graph_scatter(sentiment_term):
 def update_pie(sentiment_term, _):
     try:
 
-        db_connection = sql.connect(host=database_endpoint_url, database=database_name, user=database_user,
-                                    password=database_password)
+        db_connection = sql.connect(host=os.environ.get("database_endpoint_url"), database=os.environ.get("database_name"), user=os.environ.get("database_user"),
+                                    password=os.environ.get("database_password"))
         cursor = db_connection.cursor(buffered=True)
         query = "SELECT * FROM tweets WHERE text LIKE %s"
         df = pd.read_sql("SELECT * FROM tweets WHERE text LIKE %s", con=db_connection,
