@@ -1,0 +1,1 @@
+worker: app.py & create_streamer.py & wait -n

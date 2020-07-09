@@ -149,7 +149,7 @@ def update_pie(sentiment_term, _):
 
         values = [positive, negative, neutral]
         labels = ['Positive', 'Negative', 'Mixed']
-        print(labels, values)
+        # print(labels, values)
 
         trace = go.Pie(labels=labels, values=values, title="Distribution of Twitter Sentiement",
                        hoverinfo='label+percent', textinfo='value',
