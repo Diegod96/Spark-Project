@@ -26,9 +26,6 @@ After streaming the data to S3, I need to analyze the data and package it in a w
 * Converted the PySpark Dataframe to a Pandas Dataframe to be able export to MySQL using the sqlalchemy library.
 * Exported Dataframe to MySQL DB.
 
-**TODO:**
-* Do EDA on this data to get a look on how the data is comproised.
-* Perform conversion of float value sentiment to overal sentiment (i.e. Positive, Neutral, and Negative) on ontebook rather than on the Dash - Plotly app.py to help with faster load times since I will not be querying from such a large DB table.
 
 ## Dash-Plotly
 Now I have to display the data to the viewer. I used the Dash-Plotly articles code as framework since the style and layout fit the kind of look and style i was looking for.
@@ -38,14 +35,20 @@ The features that I implemented were the following:
 * A piechart that displays the sentiment of whatever term the user inputed in the serach bar for the current week
 * Hosted on Heroku
 
-**TODO:**
-* Add more graphs and figures
-* Reduce the amount of data that has to be queried to help with load times. I have noticed that the piechart takes a second or two to render.
+
 
 ## And Here Is The End Results
 <img width="1919" alt="Dash" src="https://user-images.githubusercontent.com/25403763/87168178-161e6980-c29c-11ea-83f1-d3c1f45d0fd0.PNG">
 
 **This Application Can Be Found At: https://diego-twitter-application.herokuapp.com/**
+
+## TODO
+* Reduce the amount of data that has to be queried on page load
+* For example, the piechart has to query a large MySQL DB to load the total sentiment and also search for sentment for a term
+* Do more EDA of the data in the Spark Analysis section
+* Create fast indexes for MySQL DB to increase query speed
+* Add more graphs and figures for the viewer
+* Get trending hashtags
 
 
 
