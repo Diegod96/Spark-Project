@@ -38,6 +38,10 @@ The features that I implemented were the following:
 * A piechart that displays the sentiment of whatever term the user inputed in the serach bar for the current week
 * Hosted on Heroku
 
+**TODO:**
+* Add more graphs and figures
+* Reduce the amount of data that has to be queried to help with load times. I have noticed that the piechart takes a second or two to render.
+
 ## And Here Is The End Results
 <img width="1919" alt="Dash" src="https://user-images.githubusercontent.com/25403763/87168178-161e6980-c29c-11ea-83f1-d3c1f45d0fd0.PNG">
 
