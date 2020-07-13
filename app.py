@@ -1,5 +1,6 @@
 import mysql.connector as sql
 import dash
+import json
 import numpy as np
 from dash.dependencies import Output, Input, Event
 import dash_core_components as dcc
@@ -8,12 +9,11 @@ import plotly
 import plotly.express as px
 import plotly.graph_objs as go
 import sqlite3
+import boto3
 import pandas as pd
-from config import database_name, database_password, database_endpoint_url, database_user
+from config import *
 
 conn = sqlite3.connect('twitter.db', check_same_thread=False)
-db_connection = sql.connect(host=database_endpoint_url, database=database_name, user=database_user,
-                            password=database_password)
 
 app_colors = {
     'background': '#0C0F0A',
@@ -55,7 +55,7 @@ app.layout = html.Div(
                               ),
                      html.Div(className='eight columns div-for-chars bg-black',
                               children=[
-                                  dcc.Graph(id='live-graph', config={'displayModeBar': False}, animate=True),
+                                  dcc.Graph(id='live-graph', config={'displayModeBar': False}, animate=False),
                                   dcc.Interval(
                                       id='graph-update',
                                       interval=1 * 1000
@@ -63,7 +63,7 @@ app.layout = html.Div(
                                   dcc.Graph(id='pie'),
                                   dcc.Interval(
                                       id='pie-update',
-                                      interval=1 * 1000
+                                      interval=1 * 3000
                                   )
 
                               ])
@@ -121,33 +121,56 @@ def update_graph_scatter(sentiment_term):
             f.write('\n')
 
 
+def get_message():
+    global previous_data
+    sqs = boto3.client('sqs', aws_access_key_id=accesskeyid,
+                       aws_secret_access_key=secretaccesskey,
+                       region_name=region)
+
+    while True:
+        resp = sqs.receive_message(
+            QueueUrl=queue_url,
+            AttributeNames=['All'],
+            MaxNumberOfMessages=1
+        )
+
+        try:
+            data = []
+            messages = resp['Messages']
+            message = messages[0]
+            string_body_dictionary = message['Body']
+            body_dictionary = json.loads(string_body_dictionary)
+            string_message_dictionary = body_dictionary.get('Message')
+            sentiment_dictionary = json.loads(string_message_dictionary)
+            positive = sentiment_dictionary.get('Positive')
+            negative = sentiment_dictionary.get('Negative')
+            neutral = sentiment_dictionary.get('Neutral')
+            data.append(positive)
+            data.append(negative)
+            data.append(neutral)
+            entries = [
+                {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
+                for msg in resp['Messages']
+            ]
+
+            resp = sqs.delete_message_batch(
+                QueueUrl=queue_url, Entries=entries
+            )
+
+            if len(resp['Successful']) != len(entries):
+                raise RuntimeError(
+                    f"Failed to delete messages: entries={entries!r} resp={resp!r}"
+                )
+            return data
+        except KeyError:
+            break
+
+
 @app.callback(Output('pie', 'figure'),
-              [Input('sentiment_term', 'value'), Input('pie-update', 'interval')])
-def update_pie(sentiment_term, _):
+              [Input('pie-update', 'interval')])
+def update_pie(n):
     try:
-
-        db_connection = sql.connect(host=database_endpoint_url, database=database_name, user=database_user,
-                                    password=database_password)
-        cursor = db_connection.cursor(buffered=True)
-        query = "SELECT * FROM tweets WHERE text LIKE %s"
-        df = pd.read_sql("SELECT * FROM tweets WHERE text LIKE %s", con=db_connection,
-                         params=("%" + sentiment_term + "%",))
-        sentiments = df['sentiment'].tolist()
-        positive = 0
-        neutral = 0
-        negative = 0
-
-        for sentiment in sentiments:
-            sentiment = float(sentiment)
-            if sentiment < -0.2:
-                negative += 1
-            if sentiment > 0.2:
-                positive += 1
-            else:
-                neutral += 1
-
-
-        values = [positive, negative, neutral]
+        values = get_message()
         labels = ['Positive', 'Negative', 'Mixed']
         # print(labels, values)
 
@@ -158,8 +181,8 @@ def update_pie(sentiment_term, _):
                            line=dict(color=app_colors['background'], width=2)))
 
         return {'data': [trace], 'layout': go.Layout(title="Distribution of Twitter Sentiement",
-                                                     # colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400',
-                                                     #           '#FF0056'],
+                                                     colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400',
+                                                               '#FF0056'],
                                                      template='plotly_dark',
                                                      paper_bgcolor='rgba(0, 0, 0, 0)',
                                                      plot_bgcolor='rgba(0, 0, 0, 0)',
