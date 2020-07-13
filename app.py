@@ -1,21 +1,14 @@
 import dash
-<<<<<<< HEAD
-=======
 import json
->>>>>>> SQS
 from dash.dependencies import Output, Input, Event
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly
-<<<<<<< HEAD
-=======
 import os
->>>>>>> SQS
 import plotly.graph_objs as go
 import sqlite3
 import boto3
 import pandas as pd
-from config import *
 
 conn = sqlite3.connect('twitter.db', check_same_thread=False)
 
@@ -127,13 +120,13 @@ def update_graph_scatter(sentiment_term):
 
 def get_message():
     global previous_data
-    sqs = boto3.client('sqs', aws_access_key_id=accesskeyid,
-                       aws_secret_access_key=secretaccesskey,
-                       region_name=region)
+    sqs = boto3.client('sqs', aws_access_key_id=os.environ.get("accesskeyid"),
+                       aws_secret_access_key=os.environ.get("secretaccesskey"),
+                       region_name=os.environ.get("region"))
 
     while True:
         resp = sqs.receive_message(
-            QueueUrl=queue_url,
+            QueueUrl=os.environ.get("queue_url"),
             AttributeNames=['All'],
             MaxNumberOfMessages=1
         )
