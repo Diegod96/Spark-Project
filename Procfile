@@ -1,1 +1,1 @@
-worker: python app.py & python create_stream.py & wait -n
+web: python app.py & python create_stream.py & wait -n
