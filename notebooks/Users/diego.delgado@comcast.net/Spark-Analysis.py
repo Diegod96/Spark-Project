@@ -1,11 +1,9 @@
 # Databricks notebook source
+# DBTITLE 1,Data Retrieval
 from __future__ import print_function
 import sys
-import pymysql
 import os
 import re
-import mysql.connector
-from sqlalchemy import create_engine
 from operator import add
 import pandas as pd
 from pyspark.sql.types import StructField, StructType, StringType
@@ -53,36 +51,35 @@ df = spark.read.json(rdd.map(lambda x: x[1]))
 features_of_interest = ["ts", "text", "sentiment"]
 df_reduce = df.select(features_of_interest)
 
+# COMMAND ----------
 
-
+# DBTITLE 1,Convert RDD to Pandas
 # Convert RDD to Pandas Dataframe
 tweets_pdf = df_reduce.toPandas()
+sentiments = tweets_pdf['sentiment'].tolist()
 
-engine = create_engine(f'mysql+mysqlconnector://admin:{os.environ.get("databasepassword")}@{os.environ.get("databasehost")}/twitter-data')
-tweets_pdf.to_sql(name='tweets', con=engine, if_exists = 'replace', index=False)
+# Tally positive, negative, and neutral sentiment
+positive = 0
+neutral = 0
+negative = 0
+for sentiment in sentiments:
+    sentiment = float(sentiment)
+    if sentiment < -0.2:
+       negative += 1
+    if sentiment > 0.2:
+       positive += 1
+    else:
+       neutral += 1
 
-
-
-
-# # Establish connection to AWS RDS Via MySql Workbench
-# connection = pymysql.connect(host=os.environ.get("databasehost"),
-#                          user='admin',
-#                          password=os.environ.get("databasepassword"),
-#                          db='twitter-data')
-
-# cursor=connection.cursor()
-
-# cols = "`,`".join([str(i) for i in tweets_pdf.columns.tolist()])
-
-# # Iterate over dataframe and add values to columns in the "tweets" table
-# for i,row in tweets_pdf.iterrows():
-#     sql = "INSERT INTO `tweets` (`" +cols + "`) VALUES (" + "%s,"*(len(row)-1) + "%s)"
-#     cursor.execute(sql, tuple(row))
-#     connection.commit()
-    
-
-print("Data saved to MySql Databaste")
-
+# Put this sentiment in a dictionary 
+values = [positive, negative, neutral]
+values_dictionary = {"Positive":positive, "Negative":negative, "Neutral":neutral}
 
 # COMMAND ----------
 
+# DBTITLE 1,Post Results to Message Board
+# Connect to SNS Topic and send sentiment_dictionary to SQS Queue
+topicArn=os.environ.get("SNSARN")
+snsClient = boto3.client('sns', aws_access_key_id=aws_key_id, aws_secret_access_key=aws_key, region_name='us-east-1')
+response = snsClient.publish(TopicArn=topicArn, Message=json.dumps(values_dictionary), Subject='Sentiment', MessageAttributes = {"SentimentType": { "DataType": "String", "StringValue": "SENTIMENT"}})
+print(response['ResponseMetadata']['HTTPStatusCode'])
