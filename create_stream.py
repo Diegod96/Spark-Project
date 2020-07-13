@@ -1,6 +1,7 @@
 from tweepy import Stream, OAuthHandler
 from tweepy.streaming import StreamListener
 import json
+import os
 import boto3
 import sqlite3
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer

@@ -4,7 +4,7 @@ from dash.dependencies import Output, Input, Event
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly
-import plotly.express as px
+import os
 import plotly.graph_objs as go
 import sqlite3
 import boto3
