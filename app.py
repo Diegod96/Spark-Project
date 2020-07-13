@@ -1,7 +1,5 @@
-import mysql.connector as sql
 import dash
 import json
-import numpy as np
 from dash.dependencies import Output, Input, Event
 import dash_core_components as dcc
 import dash_html_components as html
