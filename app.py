@@ -1,11 +1,8 @@
-import mysql.connector as sql
 import dash
-import numpy as np
 from dash.dependencies import Output, Input, Event
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly
-import plotly.express as px
 import plotly.graph_objs as go
 import sqlite3
 import pandas as pd
