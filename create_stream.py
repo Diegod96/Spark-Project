@@ -68,7 +68,7 @@ class TweetStreamListener(StreamListener):
                           (tweet_data['ts'], tweet_data['text'], tweet_data['sentiment']))
                 conn.commit()
                 kinesis_client.put_record(
-                    DeliveryStreamName=stream_name,
+                    DeliveryStreamName=os.environ.get("stream_name"),
                     Record={
                         'Data': json.dumps(tweet_data) + '\n'
                     }
