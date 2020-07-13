@@ -151,7 +151,7 @@ def get_message():
             ]
 
             resp = sqs.delete_message_batch(
-                QueueUrl=queue_url, Entries=entries
+                QueueUrl=os.environ.get("queue_url"), Entries=entries
             )
 
             if len(resp['Successful']) != len(entries):
