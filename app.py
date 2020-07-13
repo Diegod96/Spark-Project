@@ -119,7 +119,6 @@ def update_graph_scatter(sentiment_term):
 
 
 def get_message():
-    global previous_data
     sqs = boto3.client('sqs', aws_access_key_id=os.environ.get("accesskeyid"),
                        aws_secret_access_key=os.environ.get("secretaccesskey"),
                        region_name=os.environ.get("region"))
@@ -169,7 +168,6 @@ def update_pie(n):
     try:
         values = get_message()
         labels = ['Positive', 'Negative', 'Mixed']
-        # print(labels, values)
 
         trace = go.Pie(labels=labels, values=values, title="Distribution of Twitter Sentiement",
                        hoverinfo='label+percent', textinfo='value',

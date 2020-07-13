@@ -1,1 +1,1 @@
-web: python app.py & python create_stream.py & wait -n
+web: gunicorn app:server & python create_stream.py
