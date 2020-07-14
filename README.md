@@ -22,19 +22,19 @@ Tweaked the Twitter Streamer code above to only stream tweets that are in englis
 This data is then stored in a SQLite3 DB got the live sentiment graph, and streamed to an S3 Bucket via AWS Kinesis Firehose for the weekly sentient piechart.
 
 ## Spark Analysis
-After streaming the data to S3, I need to analyze the data and package it in a way to be exported to my MySQL DB for longer term storage.
-* Converted the PySpark Dataframe to a Pandas Dataframe to be able export to MySQL using the sqlalchemy library.
-* Exported Dataframe to MySQL DB.
+After streaming the data to S3, I need to analyze the data and package it in a way to be sent to a SQS queue in an SNS topic.
+* Converted the PySpark Dataframe to a Pandas Dataframe to perform analysis on tweet sentiment.
+* Packaged tweet sentiment into a dictionary.
+* Exported dictionary to a SQS queue in an SNS topic.
+* This notebok is running on a cron job every minute.
 
 
 ## Dash-Plotly
-Now I have to display the data to the viewer. I used the Dash-Plotly articles code as framework since the style and layout fit the kind of look and style i was looking for.
+Now I have to display the data to the viewer. I used the Dash-Plotly articles code as framework since the style and layout fit the kind of look and style I was looking for.
 The features that I implemented were the following:
 * A search bar where the user can either leave it blank to see all of twitter's sentiement, or enter a term to see that term's sentiment
 * A live graph with 1 and -1 (positive and negative) as the upper and lower bounds on the x-axis and the tweets timestamp on the y-axis
-* A piechart that displays the sentiment of whatever term the user inputed in the serach bar for the current week
-* Hosted on Heroku
-
+* A piechart that displays the sentiment of all of twitter. Updated every 2 minutes.
 
 
 ## And Here Is The End Results
@@ -43,10 +43,8 @@ The features that I implemented were the following:
 **This Application Can Be Found At: https://diego-twitter-application.herokuapp.com/**
 
 ## TODO
-* Reduce the amount of data that has to be queried on page load
-* For example, the piechart has to query a large MySQL DB to load the total sentiment and also search for sentment for a term
+* ~~Reduce the amount of data that has to be queried on page load~~
 * Do more EDA of the data in the Spark Analysis section
-* Create fast indexes for MySQL DB to increase query speed
 * Add more graphs and figures for the viewer
 * Get trending hashtags
 
