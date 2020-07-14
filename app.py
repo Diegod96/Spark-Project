@@ -166,6 +166,7 @@ def get_message():
 #               [Input('pie-update', 'n_intervals')])
 
 @app.callback(Output('pie', 'figure'),
+              [Input(component_id='sentiment_term', component_property='value')],
               events=[Event('pie-update', 'interval')])
 def update_pie(n):
 
