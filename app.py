@@ -60,8 +60,7 @@ app.layout = html.Div(
                                   dcc.Graph(id='pie'),
                                   dcc.Interval(
                                       id='pie-update',
-                                      disabled=False,
-                                      interval=140 * 1000,
+                                      interval=100 * 1000,
                                   )
 
                               ])
@@ -167,7 +166,6 @@ def get_message():
 #               [Input('pie-update', 'n_intervals')])
 
 @app.callback(Output('pie', 'figure'),
-              [Input(component_id='sentiment_term', component_property='value')],
               events=[Event('pie-update', 'interval')])
 def update_pie(n):
 
