@@ -61,7 +61,7 @@ app.layout = html.Div(
                                   dcc.Interval(
                                       id='pie-update',
                                       disabled=False,
-                                      interval=40 * 1000,
+                                      interval=150000 * 1000,
                                       n_intervals=0
                                   )
 
@@ -164,37 +164,41 @@ def get_message():
             break
 
 
+# @app.callback(Output('pie', 'figure'),
+#               [Input('pie-update', 'n_intervals')])
+
 @app.callback(Output('pie', 'figure'),
-              [Input('pie-update', 'n_intervals')])
+              [Input(component_id='sentiment_term', component_property='value')],
+              events=[Event('pie-update', 'interval')])
 def update_pie(n):
-    while n != 0:
-        try:
 
-            values = get_message()
-            labels = ['Positive', 'Negative', 'Mixed']
+    try:
 
-            trace = go.Pie(labels=labels, values=values, title="Distribution of Twitter Sentiement",
-                           hoverinfo='label+percent', textinfo='value',
-                           textfont=dict(size=20, color=app_colors['text']),
-                           marker=dict(
-                               line=dict(color=app_colors['background'], width=2)))
+        values = get_message()
+        labels = ['Positive', 'Negative', 'Mixed']
 
-            return {'data': [trace], 'layout': go.Layout(title="Distribution of Twitter Sentiement",
-                                                         colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400',
-                                                                   '#FFF400',
-                                                                   '#FF0056'],
-                                                         template='plotly_dark',
-                                                         paper_bgcolor='rgba(0, 0, 0, 0)',
-                                                         plot_bgcolor='rgba(0, 0, 0, 0)',
-                                                         margin={'b': 15},
-                                                         hovermode='x',
-                                                         autosize=True)}
+        trace = go.Pie(labels=labels, values=values, title="Distribution of Twitter Sentiement",
+                       hoverinfo='label+percent', textinfo='value',
+                       textfont=dict(size=20, color=app_colors['text']),
+                       marker=dict(
+                           line=dict(color=app_colors['background'], width=2)))
+
+        return {'data': [trace], 'layout': go.Layout(title="Distribution of Twitter Sentiement",
+                                                     colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400',
+                                                               '#FFF400',
+                                                               '#FF0056'],
+                                                     template='plotly_dark',
+                                                     paper_bgcolor='rgba(0, 0, 0, 0)',
+                                                     plot_bgcolor='rgba(0, 0, 0, 0)',
+                                                     margin={'b': 15},
+                                                     hovermode='x',
+                                                     autosize=True)}
 
 
-        except Exception as e:
-            with open('errors.txt', 'a') as f:
-                f.write(str(e))
-                f.write('\n')
+    except Exception as e:
+        with open('errors.txt', 'a') as f:
+            f.write(str(e))
+            f.write('\n')
 
 
 if __name__ == '__main__':
