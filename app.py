@@ -1,16 +1,10 @@
 import dash
-<<<<<<< HEAD
-=======
 import json
->>>>>>> SQS
 from dash.dependencies import Output, Input, Event
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly
-<<<<<<< HEAD
-=======
 import os
->>>>>>> SQS
 import plotly.graph_objs as go
 import sqlite3
 import boto3
