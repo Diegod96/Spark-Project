@@ -60,7 +60,7 @@ app.layout = html.Div(
                                   dcc.Graph(id='pie'),
                                   dcc.Interval(
                                       id='pie-update',
-                                      interval=100 * 1000,
+                                      interval=60 * 1000,
                                   )
 
                               ])
