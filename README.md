@@ -2,7 +2,10 @@
 * Created a Twitter Dashbaord application that streams live twitter sentiment for the whole of twitter or for a specific user defined term (i.e. covid, biden, trump, etc.).
 * There is a graph of live sentiment and a piechart of the distribution of sentiment for the current week.
 * About 5 million tweets a day are being streamed and collected using Python, Tweepy API, and SQLite3 (TTL 24hrs).
-* Same amount is being streamed and collected in longer term storage using AWS Kinesis Firehose, AWS S3, AWS RDS, Apache Spark/PySpark, and MySQL (TTL 7days).
+* The same amount of messages are being streamed to a Databricks notebook via AWS Kinesis Firehose.
+* At the Databricks notebook, the data is being analyzed, formatted and loaded into a AWS SQS queue sitting in an AWS SNS topic.
+* This notebook in running on a cron job for every minute, and the SQS queue is being purged every hour.
+* This queue is being being polled by the dash-plotly frontend, specifically the piechart.
 
 ## Code & Resources Used
 **Python Version:** 3.8
@@ -38,7 +41,7 @@ The features that I implemented were the following:
 * About a 1:1 ratio of message being posted to the queue and the interval the messages are polled.
 
 ## KNOWN BUG
-Whenever a user types in a term into the searchbar, the page is refreshed with every character. For example, if a user wants to search "baseball", the page will refresh on the user inputs of "b", "ba", "bas" ... until we get to "baseball". This is due to the database being queried on every charcter inputted in the search bar. This also means that the function that handles updating the piechart is also intitated on every refresh. Depending on the number of characters that are inputted, the piechart may display three pie sqaures of 1. This is due to messages being "in-flight" so it may take a couple of seconds for the messages to arrive to the piehcart be displayed. A fix on chnaging the way the database is queried is on the TODO.
+Whenever a user types in a term into the searchbar, the page is refreshed with every character. For example, if a user wants to search "baseball", the page will refresh on the user inputs of "b", "ba", "bas" ... until we get to "baseball". This is due to the database being queried on every charcter inputted in the search bar. This also means that the function that handles updating the piechart is also intitated on every refresh. Depending on the number of characters that are inputted, the piechart may display three pie squares of 1. This is due to messages being "in-flight" so it may take a couple of seconds for the messages to arrive to the piehcart be displayed. A fix on chnaging the way the database is queried is on the TODO.
 
 
 ## And Here Is The End Results
