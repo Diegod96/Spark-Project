@@ -144,19 +144,19 @@ def get_message():
             data.append(positive)
             data.append(negative)
             data.append(neutral)
-            entries = [
-                {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
-                for msg in resp['Messages']
-            ]
-
-            resp = sqs.delete_message_batch(
-                QueueUrl=os.environ.get("queue_url"), Entries=entries
-            )
-
-            if len(resp['Successful']) != len(entries):
-                raise RuntimeError(
-                    f"Failed to delete messages: entries={entries!r} resp={resp!r}"
-                )
+            # entries = [
+            #     {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
+            #     for msg in resp['Messages']
+            # ]
+            #
+            # resp = sqs.delete_message_batch(
+            #     QueueUrl=os.environ.get("queue_url"), Entries=entries
+            # )
+            #
+            # if len(resp['Successful']) != len(entries):
+            #     raise RuntimeError(
+            #         f"Failed to delete messages: entries={entries!r} resp={resp!r}"
+            #     )
             return data
         except KeyError:
             break
