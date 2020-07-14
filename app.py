@@ -55,12 +55,14 @@ app.layout = html.Div(
                                   dcc.Graph(id='live-graph', config={'displayModeBar': False}, animate=False),
                                   dcc.Interval(
                                       id='graph-update',
-                                      interval=1 * 1000
+                                      interval=1 * 4000
                                   ),
                                   dcc.Graph(id='pie'),
                                   dcc.Interval(
                                       id='pie-update',
-                                      interval=1 * 3000
+                                      disabled=False,
+                                      interval=1 * 4000,
+                                      n_intervals=0
                                   )
 
                               ])
@@ -118,58 +120,98 @@ def update_graph_scatter(sentiment_term):
             f.write('\n')
 
 
-def get_message():
-    sqs = boto3.client('sqs', aws_access_key_id=os.environ.get("accesskeyid"),
-                       aws_secret_access_key=os.environ.get("secretaccesskey"),
-                       region_name=os.environ.get("region"))
-
-    while True:
-        resp = sqs.receive_message(
-            QueueUrl=os.environ.get("queue_url"),
-            AttributeNames=['All'],
-            MaxNumberOfMessages=1
-        )
-
-        try:
-            data = []
-            messages = resp['Messages']
-            message = messages[0]
-            string_body_dictionary = message['Body']
-            body_dictionary = json.loads(string_body_dictionary)
-            string_message_dictionary = body_dictionary.get('Message')
-            sentiment_dictionary = json.loads(string_message_dictionary)
-            positive = sentiment_dictionary.get('Positive')
-            negative = sentiment_dictionary.get('Negative')
-            neutral = sentiment_dictionary.get('Neutral')
-            data.append(positive)
-            data.append(negative)
-            data.append(neutral)
-            entries = [
-                {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
-                for msg in resp['Messages']
-            ]
-
-            resp = sqs.delete_message_batch(
-                QueueUrl=os.environ.get("queue_url"), Entries=entries
-            )
-
-            if len(resp['Successful']) != len(entries):
-                raise RuntimeError(
-                    f"Failed to delete messages: entries={entries!r} resp={resp!r}"
-                )
-            return data
-        except KeyError:
-            break
+# def get_message():
+#     sqs = boto3.client('sqs', aws_access_key_id=os.environ.get("accesskeyid"),
+#                        aws_secret_access_key=os.environ.get("secretaccesskey"),
+#                        region_name=os.environ.get("region"))
+#
+#     while True:
+#         resp = sqs.receive_message(
+#             QueueUrl=os.environ.get("queue_url"),
+#             AttributeNames=['All'],
+#             MaxNumberOfMessages=1
+#         )
+#
+#         try:
+#             data = []
+#             messages = resp['Messages']
+#             message = messages[0]
+#             string_body_dictionary = message['Body']
+#             body_dictionary = json.loads(string_body_dictionary)
+#             string_message_dictionary = body_dictionary.get('Message')
+#             sentiment_dictionary = json.loads(string_message_dictionary)
+#             positive = sentiment_dictionary.get('Positive')
+#             negative = sentiment_dictionary.get('Negative')
+#             neutral = sentiment_dictionary.get('Neutral')
+#             data.append(positive)
+#             data.append(negative)
+#             data.append(neutral)
+#             entries = [
+#                 {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
+#                 for msg in resp['Messages']
+#             ]
+#
+#             resp = sqs.delete_message_batch(
+#                 QueueUrl=os.environ.get("queue_url"), Entries=entries
+#             )
+#
+#             if len(resp['Successful']) != len(entries):
+#                 raise RuntimeError(
+#                     f"Failed to delete messages: entries={entries!r} resp={resp!r}"
+#                 )
+#             return data
+#         except KeyError:
+#             break
 
 
 @app.callback(Output('pie', 'figure'),
-              [Input('pie-update', 'interval')])
+              [Input('pie-update', 'n_intervals')])
 def update_pie(n):
     try:
-        values = get_message()
+        sqs = boto3.client('sqs', aws_access_key_id=os.environ.get("accesskeyid"),
+                           aws_secret_access_key=os.environ.get("secretaccesskey"),
+                           region_name=os.environ.get("region"))
+        while True:
+            resp = sqs.receive_message(
+                QueueUrl=os.environ.get("queue_url"),
+                AttributeNames=['All'],
+                MaxNumberOfMessages=1
+            )
+
+            try:
+                data = []
+                messages = resp['Messages']
+                message = messages[0]
+                string_body_dictionary = message['Body']
+                body_dictionary = json.loads(string_body_dictionary)
+                string_message_dictionary = body_dictionary.get('Message')
+                sentiment_dictionary = json.loads(string_message_dictionary)
+                positive = sentiment_dictionary.get('Positive')
+                negative = sentiment_dictionary.get('Negative')
+                neutral = sentiment_dictionary.get('Neutral')
+                data.append(positive)
+                data.append(negative)
+                data.append(neutral)
+                entries = [
+                    {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
+                    for msg in resp['Messages']
+                ]
+
+                resp = sqs.delete_message_batch(
+                    QueueUrl=os.environ.get("queue_url"), Entries=entries
+                )
+
+                if len(resp['Successful']) != len(entries):
+                    raise RuntimeError(
+                        f"Failed to delete messages: entries={entries!r} resp={resp!r}"
+                    )
+            except KeyError:
+                break
+
+
         labels = ['Positive', 'Negative', 'Mixed']
 
-        trace = go.Pie(labels=labels, values=values, title="Distribution of Twitter Sentiement",
+        trace = go.Pie(labels=labels, values=data, title="Distribution of Twitter Sentiement",
                        hoverinfo='label+percent', textinfo='value',
                        textfont=dict(size=20, color=app_colors['text']),
                        marker=dict(
