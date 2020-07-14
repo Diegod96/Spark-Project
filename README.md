@@ -34,7 +34,11 @@ Now I have to display the data to the viewer. I used the Dash-Plotly articles co
 The features that I implemented were the following:
 * A search bar where the user can either leave it blank to see all of twitter's sentiement, or enter a term to see that term's sentiment
 * A live graph with 1 and -1 (positive and negative) as the upper and lower bounds on the x-axis and the tweets timestamp on the y-axis
-* A piechart that displays the sentiment of all of twitter. Updated every 2 minutes.
+* A piechart that displays the sentiment of all of twitter. Updated every minute.
+* About a 1:1 ratio of message being posted to the queue and the interval the messages are polled.
+
+## KNOWN BUG
+Whenever a user types in a term into the searchbar, the page is refreshed with every character. For example, if a user wants to search "baseball", the page will refresh on the user inputs of "b", "ba", "bas" ... until we get to "baseball". This is due to the database being queried on every charcter inputted in the search bar. This also means that the function that handles updating the piechart is also intitated on every refresh. Depending on the number of characters that are inputted, the piechart may display three pie sqaures of 1. This is due to messages being "in-flight" so it may take a couple of seconds for the messages to arrive to the piehcart be displayed. A fix on chnaging the way the database is queried is on the TODO.
 
 
 ## And Here Is The End Results
@@ -44,6 +48,7 @@ The features that I implemented were the following:
 
 ## TODO
 * ~~Reduce the amount of data that has to be queried on page load~~
+* Chnage how database is queried to prevent page refresh on every character inputted to search bar.
 * Do more EDA of the data in the Spark Analysis section
 * Add more graphs and figures for the viewer
 * Get trending hashtags
