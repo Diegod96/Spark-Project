@@ -127,7 +127,7 @@ def get_message():
 
     while True:
         resp = sqs.receive_message(
-            QueueUrl=queue_url,
+            QueueUrl=sentiment_queue_url,
             AttributeNames=['All'],
             MaxNumberOfMessages=1
         )
@@ -146,19 +146,19 @@ def get_message():
             data.append(positive)
             data.append(negative)
             data.append(neutral)
-            entries = [
-                {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
-                for msg in resp['Messages']
-            ]
-
-            resp = sqs.delete_message_batch(
-                QueueUrl=queue_url, Entries=entries
-            )
-
-            if len(resp['Successful']) != len(entries):
-                raise RuntimeError(
-                    f"Failed to delete messages: entries={entries!r} resp={resp!r}"
-                )
+            # entries = [
+            #     {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
+            #     for msg in resp['Messages']
+            # ]
+            #
+            # resp = sqs.delete_message_batch(
+            #     QueueUrl=sentiment_queue_url, Entries=entries
+            # )
+            #
+            # if len(resp['Successful']) != len(entries):
+            #     raise RuntimeError(
+            #         f"Failed to delete messages: entries={entries!r} resp={resp!r}"
+            #     )
             return data
         except KeyError:
             break
