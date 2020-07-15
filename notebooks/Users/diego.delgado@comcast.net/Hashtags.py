@@ -68,7 +68,24 @@ from collections import Counter
 
 Counter = Counter(hashtags)
 most_occur = Counter.most_common(10) 
-print(most_occur) 
+
+# Convert list of tuples to dictionary
+def Convert(tup, di): 
+    di = dict(tup) 
+    return di 
+
+dictionary = {}
+hashtags_dictionary = Convert(most_occur, dictionary)
+
+print(hashtags_dictionary)
+
+# COMMAND ----------
+
+# Connect to SNS Topic and send sentiment_dictionary to SQS Queue
+topicArn=os.environ.get("hashtagsnsnarn")
+snsClient = boto3.client('sns', aws_access_key_id=aws_key_id, aws_secret_access_key=aws_key, region_name='us-east-1')
+response = snsClient.publish(TopicArn=topicArn, Message=json.dumps(hashtags_dictionary), Subject='Hashtags', MessageAttributes = {"HashtagType": { "DataType": "String", "StringValue": "Count"}})
+print(response['ResponseMetadata']['HTTPStatusCode'])
 
 # COMMAND ----------
 
