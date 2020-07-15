@@ -49,24 +49,24 @@ def sentiment_analysis(text):
     return sentiment
 
 
-def get_hashtags(all_data):
+def get_hashtag(all_data):
     """
-    Parses the entities object of the tweepy json object and extracts the hashtags for a tweet
-    If a tweet has no ashtags then return an empty list
-    Else, return a list of the hashtags for the current tweet being processed
+    Parses the entities object of the tweepy json object and extracts the hashtag for a tweet
+    If a tweet has no hastag then return an empty list
+    Else, return the hashtag
     :param all_data:
     :return: hashtags
     """
-    hashtags = []
-    entites = all_data.get('entities')
-    hashtags_list = entites.get('hashtags')
+
+    hashtag = ""
+    entities = all_data.get('entities')
+    hashtags_list = entities.get('hashtags')
     if not hashtags_list:
-        return hashtags
+        return hashtag
     else:
         for hashtag_dictionary in hashtags_list:
             hashtag = unidecode(hashtag_dictionary.get('text'))
-            hashtags.append(hashtag)
-        return hashtags
+        return hashtag
 
 
 class TweetStreamListener(StreamListener):
@@ -85,7 +85,7 @@ class TweetStreamListener(StreamListener):
                 tweet_data['ts'] = str(all_data["timestamp_ms"])
                 tweet_data['text'] = unidecode(all_data["text"])
                 tweet_data['sentiment'] = str(sentiment_analysis(all_data["text"]))
-                tweet_data['hashtags'] = get_hashtags(all_data)
+                tweet_data['hashtag'] = get_hashtag(all_data)
                 c.execute("INSERT INTO sentiment (unix, tweet, sentiment) VALUES (?, ?, ?)",
                           (tweet_data['ts'], tweet_data['text'], tweet_data['sentiment']))
                 conn.commit()
