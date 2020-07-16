@@ -126,13 +126,13 @@ def update_graph_scatter(sentiment_term):
 
 def get_sentiment_data():
     global previous_data
-    sqs = boto3.client('sqs', aws_access_key_id=accesskeyid,
-                       aws_secret_access_key=secretaccesskey,
-                       region_name=region)
+    sqs = boto3.client('sqs', aws_access_key_id=os.environ.get("accesskeyid"),
+                       aws_secret_access_key=os.environ.get("secretaccesskey"),
+                       region_name=os.environ.get("region"))
 
     while True:
         resp = sqs.receive_message(
-            QueueUrl=sentiment_queue_url,
+            QueueUrl=os.environ.get("sentiment_queue_url"),
             AttributeNames=['All'],
             MaxNumberOfMessages=1
         )
@@ -190,12 +190,12 @@ def update_pie(n):
 
 
 def get_hashtag_data():
-    sqs = boto3.client('sqs', aws_access_key_id=accesskeyid,
-                       aws_secret_access_key=secretaccesskey,
-                       region_name=region)
+    sqs = boto3.client('sqs', aws_access_key_id=os.environ.get("accesskeyid"),
+                       aws_secret_access_key=os.environ.get("secretaccesskey"),
+                       region_name=os.environ.get("region"))
 
     resp = sqs.receive_message(
-        QueueUrl=hashtag_queue_url,
+        QueueUrl=os.environ.get("hashtag_queue_url"),
         AttributeNames=['All'],
         MaxNumberOfMessages=1
     )

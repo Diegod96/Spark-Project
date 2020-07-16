@@ -15,12 +15,12 @@ c = conn.cursor()
 analyzer = SentimentIntensityAnalyzer()
 
 # Credentials for Twitter & AWS
-consumer_key = ckey
-consumer_secret = csecret
-access_token = atoken
-access_token_secret = atokensecret
-aws_key_id = accesskeyid
-aws_key = secretaccesskey
+consumer_key = os.environ.get("ckey")
+consumer_secret = os.environ.get("csecret")
+access_token = os.environ.get("atoken")
+access_token_secret = os.environ.get("atokensecret")
+aws_key_id = os.environ.get("accesskeyid")
+aws_key = os.environ.get("secretaccesskey")
 
 
 def create_table():
@@ -90,7 +90,13 @@ class TweetStreamListener(StreamListener):
                           (tweet_data['ts'], tweet_data['text'], tweet_data['sentiment']))
                 conn.commit()
                 kinesis_client.put_record(
-                    DeliveryStreamName=stream_name_hashtags,
+                    DeliveryStreamName=os.environ.get("stream_name_hashtags"),
+                    Record={
+                        'Data': json.dumps(tweet_data) + '\n'
+                    }
+                )
+                kinesis_client.put_record(
+                    DeliveryStreamName=os.environ.get("stream_name"),
                     Record={
                         'Data': json.dumps(tweet_data) + '\n'
                     }
