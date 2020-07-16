@@ -2,13 +2,13 @@ from tweepy import Stream, OAuthHandler
 from tweepy.streaming import StreamListener
 import json
 import os
+from dotenv import load_dotenv
 import boto3
 import sqlite3
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from unidecode import unidecode
 
-# from config import *
-
+load_dotenv()
 conn = sqlite3.connect('twitter.db', check_same_thread=False)
 c = conn.cursor()
 
@@ -90,12 +90,6 @@ class TweetStreamListener(StreamListener):
                 c.execute("INSERT INTO sentiment (unix, tweet, sentiment) VALUES (?, ?, ?)",
                           (tweet_data['ts'], tweet_data['text'], tweet_data['sentiment']))
                 conn.commit()
-                # kinesis_client.put_record(
-                #     DeliveryStreamName=os.environ.get("stream_name_hashtags"),
-                #     Record={
-                #         'Data': json.dumps(tweet_data) + '\n'
-                #     }
-                # )
                 kinesis_client.put_record(
                     DeliveryStreamName=os.environ.get("stream_name"),
                     Record={
@@ -120,6 +114,7 @@ class TweetStreamListener(StreamListener):
 
 if __name__ == '__main__':
     create_table()
+
     kinesis_client = boto3.client('firehose',
                                   region_name=os.environ.get("region"),  # enter the region
                                   aws_access_key_id=os.environ.get("accesskeyid"),  # fill your AWS access key id

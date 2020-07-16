@@ -125,7 +125,6 @@ def update_graph_scatter(sentiment_term):
 
 
 def get_sentiment_data():
-    global previous_data
     sqs = boto3.client('sqs', aws_access_key_id=os.environ.get("accesskeyid"),
                        aws_secret_access_key=os.environ.get("secretaccesskey"),
                        region_name=os.environ.get("region"))
@@ -151,6 +150,7 @@ def get_sentiment_data():
             data.append(positive)
             data.append(negative)
             data.append(neutral)
+            print(data)
 
             return data
         except KeyError:
@@ -162,7 +162,7 @@ def get_sentiment_data():
               events=[Event('pie-update', 'interval')])
 def update_pie(n):
     try:
-        values = get_hashtag_data()
+        values = get_sentiment_data()
         labels = ['Positive', 'Negative', 'Mixed']
         print(labels, values)
 

@@ -4473,3 +4473,8 @@ cannot unpack non-iterable NoneType object
 'endpoint_resolver'
 cannot unpack non-iterable NoneType object
 cannot unpack non-iterable NoneType object
+'endpoint_resolver'
+'endpoint_resolver'
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object
+'endpoint_resolver'
