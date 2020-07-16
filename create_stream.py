@@ -2,13 +2,13 @@ from tweepy import Stream, OAuthHandler
 from tweepy.streaming import StreamListener
 import json
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import boto3
 import sqlite3
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from unidecode import unidecode
 
-load_dotenv()
+# load_dotenv()
 conn = sqlite3.connect('twitter.db', check_same_thread=False)
 c = conn.cursor()
 

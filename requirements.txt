@@ -28,6 +28,7 @@ plotly==4.8.2
 protobuf==3.12.2
 PySocks==1.7.1
 python-dateutil==2.8.1
+python-dotenv==0.14.0
 python-memcached==1.59
 pytz==2020.1
 requests==2.24.0
