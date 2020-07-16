@@ -4451,3 +4451,25 @@ min() arg is an empty sequence
 min() arg is an empty sequence
 min() arg is an empty sequence
 min() arg is an empty sequence
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object
+'endpoint_resolver'
+cannot unpack non-iterable NoneType object
+'endpoint_resolver'
+cannot unpack non-iterable NoneType object
+name 'X' is not defined
+'endpoint_resolver'
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object
+'endpoint_resolver'
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object
+'endpoint_resolver'
+cannot unpack non-iterable NoneType object
+cannot unpack non-iterable NoneType object

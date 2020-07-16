@@ -61,7 +61,12 @@ app.layout = html.Div(
                                   dcc.Graph(id='pie'),
                                   dcc.Interval(
                                       id='pie-update',
-                                      interval=1 * 3000
+                                      interval=60 * 1000
+                                  ),
+                                  dcc.Graph(id='bar'),
+                                  dcc.Interval(
+                                      id='bar-update',
+                                      interval=60 * 1000
                                   )
 
                               ])
@@ -119,7 +124,7 @@ def update_graph_scatter(sentiment_term):
             f.write('\n')
 
 
-def get_message():
+def get_sentiment_data():
     global previous_data
     sqs = boto3.client('sqs', aws_access_key_id=accesskeyid,
                        aws_secret_access_key=secretaccesskey,
@@ -146,31 +151,20 @@ def get_message():
             data.append(positive)
             data.append(negative)
             data.append(neutral)
-            # entries = [
-            #     {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
-            #     for msg in resp['Messages']
-            # ]
-            #
-            # resp = sqs.delete_message_batch(
-            #     QueueUrl=sentiment_queue_url, Entries=entries
-            # )
-            #
-            # if len(resp['Successful']) != len(entries):
-            #     raise RuntimeError(
-            #         f"Failed to delete messages: entries={entries!r} resp={resp!r}"
-            #     )
+
             return data
         except KeyError:
             break
 
 
 @app.callback(Output('pie', 'figure'),
-              [Input('pie-update', 'interval')])
+              [Input(component_id='sentiment_term', component_property='value')],
+              events=[Event('pie-update', 'interval')])
 def update_pie(n):
     try:
-        values = get_message()
+        values = get_hashtag_data()
         labels = ['Positive', 'Negative', 'Mixed']
-        # print(labels, values)
+        print(labels, values)
 
         trace = go.Pie(labels=labels, values=values, title="Distribution of Twitter Sentiement",
                        hoverinfo='label+percent', textinfo='value',
@@ -193,6 +187,70 @@ def update_pie(n):
         with open('errors.txt', 'a') as f:
             f.write(str(e))
             f.write('\n')
+
+
+def get_hashtag_data():
+    sqs = boto3.client('sqs', aws_access_key_id=accesskeyid,
+                       aws_secret_access_key=secretaccesskey,
+                       region_name=region)
+
+    resp = sqs.receive_message(
+        QueueUrl=hashtag_queue_url,
+        AttributeNames=['All'],
+        MaxNumberOfMessages=1
+    )
+
+    while True:
+
+        try:
+            messages = resp['Messages']
+            message = messages[0]
+            string_body_dictionary = message['Body']
+            body_dictionary = json.loads(string_body_dictionary)
+            string_message_dictionary = body_dictionary.get('Message')
+            hashtag_dictionary = json.loads(string_message_dictionary)
+
+            labels = []
+            values = []
+
+            for hashtag_labels in hashtag_dictionary:
+                labels.append(hashtag_labels)
+
+            for hashtag_values in hashtag_dictionary.values():
+                values.append(hashtag_values)
+
+            return labels, values
+
+        except KeyError:
+            break
+
+
+
+@app.callback(Output('bar', 'figure'),
+              [Input(component_id='sentiment_term', component_property='value')],
+              events=[Event('bar-update', 'interval')])
+def update_hash(n):
+    try:
+        labels, values = get_hashtag_data()
+        print(labels, values)
+
+        trace = go.Bar(x=labels, y=values)
+        return {'data': [trace], 'layout': go.Layout(title="Distribution of Twitter Sentiement",
+                                                     colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400',
+                                                               '#FF0056'],
+                                                     template='plotly_dark',
+                                                     paper_bgcolor='rgba(0, 0, 0, 0)',
+                                                     plot_bgcolor='rgba(0, 0, 0, 0)',
+                                                     margin={'b': 15},
+                                                     hovermode='x',
+                                                     autosize=True)}
+
+    except Exception as e:
+        with open('errors.txt', 'a') as f:
+            f.write(str(e))
+            f.write('\n')
+
+
 
 
 if __name__ == '__main__':
