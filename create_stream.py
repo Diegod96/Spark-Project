@@ -6,6 +6,7 @@ import boto3
 import sqlite3
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from unidecode import unidecode
+
 # from config import *
 
 conn = sqlite3.connect('twitter.db', check_same_thread=False)
@@ -89,12 +90,12 @@ class TweetStreamListener(StreamListener):
                 c.execute("INSERT INTO sentiment (unix, tweet, sentiment) VALUES (?, ?, ?)",
                           (tweet_data['ts'], tweet_data['text'], tweet_data['sentiment']))
                 conn.commit()
-                kinesis_client.put_record(
-                    DeliveryStreamName=os.environ.get("stream_name_hashtags"),
-                    Record={
-                        'Data': json.dumps(tweet_data) + '\n'
-                    }
-                )
+                # kinesis_client.put_record(
+                #     DeliveryStreamName=os.environ.get("stream_name_hashtags"),
+                #     Record={
+                #         'Data': json.dumps(tweet_data) + '\n'
+                #     }
+                # )
                 kinesis_client.put_record(
                     DeliveryStreamName=os.environ.get("stream_name"),
                     Record={
@@ -122,7 +123,8 @@ if __name__ == '__main__':
     kinesis_client = boto3.client('firehose',
                                   region_name=os.environ.get("region"),  # enter the region
                                   aws_access_key_id=os.environ.get("accesskeyid"),  # fill your AWS access key id
-                                  aws_secret_access_key=os.environ.get("secretaccesskey"))  # fill you aws secret access key
+                                  aws_secret_access_key=os.environ.get(
+                                      "secretaccesskey"))  # fill you aws secret access key
     listener = TweetStreamListener()
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
