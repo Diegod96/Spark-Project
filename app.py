@@ -34,8 +34,8 @@ app.layout = html.Div(
                               children=[
                                   html.H2('Twitter Sentiment Dashboard'),
                                   html.P('Visualizing live twitter sentiment with Plotly - Dash.'),
-                                  html.P(
-                                      'Type a term in the search box below that you would like to see the sentiment from.'),
+                                  html.P('Type a term in the search box below that you would like to see the live sentiment from.'),
+                                  html.P("Below the live graph is a piechart of the current week's sentiment and a bar graph of trending hashtags"),
                                   html.Div(
                                       className='div-for-search',
                                       children=[
