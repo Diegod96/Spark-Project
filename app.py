@@ -9,7 +9,7 @@ import plotly.graph_objs as go
 import sqlite3
 import boto3
 import pandas as pd
-from config import *
+# from config import *
 
 conn = sqlite3.connect('twitter.db', check_same_thread=False)
 
