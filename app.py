@@ -1,21 +1,14 @@
 import dash
-<<<<<<< HEAD
-=======
 import json
->>>>>>> SQS
 from dash.dependencies import Output, Input, Event
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly
-<<<<<<< HEAD
-=======
 import os
->>>>>>> SQS
 import plotly.graph_objs as go
 import sqlite3
 import boto3
 import pandas as pd
-from config import *
 
 conn = sqlite3.connect('twitter.db', check_same_thread=False)
 
@@ -67,7 +60,7 @@ app.layout = html.Div(
                                   dcc.Graph(id='pie'),
                                   dcc.Interval(
                                       id='pie-update',
-                                      interval=1 * 3000
+                                      interval=60 * 1000,
                                   )
 
                               ])
@@ -126,14 +119,13 @@ def update_graph_scatter(sentiment_term):
 
 
 def get_message():
-    global previous_data
-    sqs = boto3.client('sqs', aws_access_key_id=accesskeyid,
-                       aws_secret_access_key=secretaccesskey,
-                       region_name=region)
+    sqs = boto3.client('sqs', aws_access_key_id=os.environ.get("accesskeyid"),
+                       aws_secret_access_key=os.environ.get("secretaccesskey"),
+                       region_name=os.environ.get("region"))
 
     while True:
         resp = sqs.receive_message(
-            QueueUrl=queue_url,
+            QueueUrl=os.environ.get("queue_url"),
             AttributeNames=['All'],
             MaxNumberOfMessages=1
         )
@@ -152,31 +144,36 @@ def get_message():
             data.append(positive)
             data.append(negative)
             data.append(neutral)
-            entries = [
-                {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
-                for msg in resp['Messages']
-            ]
-
-            resp = sqs.delete_message_batch(
-                QueueUrl=queue_url, Entries=entries
-            )
-
-            if len(resp['Successful']) != len(entries):
-                raise RuntimeError(
-                    f"Failed to delete messages: entries={entries!r} resp={resp!r}"
-                )
+            # entries = [
+            #     {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
+            #     for msg in resp['Messages']
+            # ]
+            #
+            # resp = sqs.delete_message_batch(
+            #     QueueUrl=os.environ.get("queue_url"), Entries=entries
+            # )
+            #
+            # if len(resp['Successful']) != len(entries):
+            #     raise RuntimeError(
+            #         f"Failed to delete messages: entries={entries!r} resp={resp!r}"
+            #     )
             return data
         except KeyError:
             break
 
 
+# @app.callback(Output('pie', 'figure'),
+#               [Input('pie-update', 'n_intervals')])
+
 @app.callback(Output('pie', 'figure'),
-              [Input('pie-update', 'interval')])
+              [Input(component_id='sentiment_term', component_property='value')],
+              events=[Event('pie-update', 'interval')])
 def update_pie(n):
+
     try:
+
         values = get_message()
         labels = ['Positive', 'Negative', 'Mixed']
-        # print(labels, values)
 
         trace = go.Pie(labels=labels, values=values, title="Distribution of Twitter Sentiement",
                        hoverinfo='label+percent', textinfo='value',
@@ -185,7 +182,8 @@ def update_pie(n):
                            line=dict(color=app_colors['background'], width=2)))
 
         return {'data': [trace], 'layout': go.Layout(title="Distribution of Twitter Sentiement",
-                                                     colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400',
+                                                     colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400',
+                                                               '#FFF400',
                                                                '#FF0056'],
                                                      template='plotly_dark',
                                                      paper_bgcolor='rgba(0, 0, 0, 0)',

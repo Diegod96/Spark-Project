@@ -45,7 +45,7 @@ Whenever a user types in a term into the searchbar, the page is refreshed with e
 
 
 ## And Here Is The End Results
-<img width="1919" alt="Dash" src="https://user-images.githubusercontent.com/25403763/87168178-161e6980-c29c-11ea-83f1-d3c1f45d0fd0.PNG">
+<img width="1920" alt="Twitter" src="https://user-images.githubusercontent.com/25403763/89296615-91bbce00-d630-11ea-871e-77cee3a2dcec.png">
 
 **This Application Can Be Found At: https://diego-twitter-application.herokuapp.com/**
 

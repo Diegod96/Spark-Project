@@ -6,7 +6,6 @@ import boto3
 import sqlite3
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from unidecode import unidecode
-from config import *
 
 conn = sqlite3.connect('twitter.db', check_same_thread=False)
 c = conn.cursor()
@@ -15,12 +14,12 @@ c = conn.cursor()
 analyzer = SentimentIntensityAnalyzer()
 
 # Credentials for Twitter & AWS
-consumer_key = ckey
-consumer_secret = csecret
-access_token = atoken
-access_token_secret = atokensecret
-aws_key_id = accesskeyid
-aws_key = secretaccesskey
+consumer_key = os.environ.get("ckey")
+consumer_secret = os.environ.get("csecret")
+access_token = os.environ.get("atoken")
+access_token_secret = os.environ.get("atokensecret")
+aws_key_id = os.environ.get("accesskeyid")
+aws_key = os.environ.get("secretaccesskey")
 
 
 def create_table():
@@ -69,7 +68,7 @@ class TweetStreamListener(StreamListener):
                           (tweet_data['ts'], tweet_data['text'], tweet_data['sentiment']))
                 conn.commit()
                 kinesis_client.put_record(
-                    DeliveryStreamName=stream_name,
+                    DeliveryStreamName=os.environ.get("stream_name"),
                     Record={
                         'Data': json.dumps(tweet_data) + '\n'
                     }
@@ -93,9 +92,9 @@ class TweetStreamListener(StreamListener):
 if __name__ == '__main__':
     create_table()
     kinesis_client = boto3.client('firehose',
-                                  region_name=region,  # enter the region
-                                  aws_access_key_id=accesskeyid,  # fill your AWS access key id
-                                  aws_secret_access_key=secretaccesskey)  # fill you aws secret access key
+                                  region_name=os.environ.get("region"),  # enter the region
+                                  aws_access_key_id=os.environ.get("accesskeyid"),  # fill your AWS access key id
+                                  aws_secret_access_key=os.environ.get("secretaccesskey"))  # fill you aws secret access key
     listener = TweetStreamListener()
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
